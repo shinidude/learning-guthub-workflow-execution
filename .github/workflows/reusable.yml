@@ -1,15 +1,22 @@
 name: Reusable Deploy
 # Workflow call allows us to run this workflow in other workflows
 on: 
-  workflow_call:
-    inputs:
-      artifact-name:
+ workflow_call:
+  inputs:
+    artifact-name:
       description: The name of the deployable artifact files
-      required: failures
+      required: false
       default: dist
       type: string
+  outputs:
+    result: 
+      description: The result of the deployment operation
+      value: ${{ jobs.deploy.outputs.outcome }}
 jobs:
   depoy: 
+    outputs:
+      #
+      outcome: ${{ steps.set-result.outputs.step-result}}
     runs-on: ubuntu-latest
     steps:
       - name: Get Code
@@ -20,3 +27,6 @@ jobs:
         run: ls
       - name: Output information
         run: echo "Deploying & uploading"
+      - name: Set result outputs
+        id: set-result
+        run: echo "::set-output name=step-result::success"
