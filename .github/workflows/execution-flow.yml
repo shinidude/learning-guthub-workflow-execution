@@ -8,10 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
@@ -23,19 +23,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm ci
       - name: Test code
+        # This is a unique id of the step
+        id: run-test
         run: npm run test
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        # there is a step context. When we get access of the step. we can access some data on it
+        # Operators can be used in .yml
+        # the Upload test report runs if the Test code fails otherwise fails
+        # Github has special failures such as:
+          # failure(): Returns true when any previous job or step failed
+          # success(): Returns true when none of the previous steps have failed
+          # always(): Causes the step to always execute when cancelled
+          # cancelled(): Returns true if the workflow has been cancelled
+        # This checks that there was a failed test and that the run-test did fail
+        if: failure() && steps.run-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
         with:
           name: test-report
           path: test.json
@@ -44,10 +56,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Cache dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
@@ -57,7 +69,7 @@ jobs:
         id: build-website
         run: npm run build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-files
           path: dist
@@ -66,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist-files
       - name: Output contents
